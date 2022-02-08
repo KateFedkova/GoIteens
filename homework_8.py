@@ -1,5 +1,4 @@
 import random
-import re 
 # Task 1 
 # створити два списка рандомно згенерованих значень від 0 до 10 по 10 значень в кожному
 
@@ -76,19 +75,31 @@ for tuple_1 in enumerate(list_5):
 
 # Task 5 
 #написати програму, яка б перевіряла введений користувачем пароль на валідність умови наступні:
-#мінімум 8 символів,велика буква,маленька буква,цифра,символ
-operation = input("Enter your password: ")
+#  мінімум 8 символів
+#  велика буква
+#  маленька буква
+#  цифра
+#  символ
 
-while index != len(operation):
-    if len(operation) < 8 :
-        print("The password has less than 8 characters")
-        break
-    elif  operation.isdigit():
-        print("Must be lettres")        
-        break
-    elif operation.islower():
-        print("One letter must be capitalized")
-        break
-    elif re.search('[^\w-]|_', operation):
-        print("Well done!")
-        break
+password = input("Enter your password: ")
+
+min_number = False
+upper_letter = False
+lower_letter = False
+digit = False
+symbol = False
+
+
+if len(password) >= 8:
+    min_number = True
+if any(element.isupper() for element in password):
+    upper_letter = True
+if any(element.islower() for element in password):
+    lower_letter = True
+if any(element.isdigit() for element in password):
+    digit =  True
+if password.find('!@$%^&*_'):
+    symbol = True
+
+if  min_number and upper_letter and lower_letter and digit and  symbol:
+    print(password)   
