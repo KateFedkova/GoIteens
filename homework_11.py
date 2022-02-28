@@ -12,17 +12,17 @@ print(numbers(number))
 #Написати функцію, яка приймає 3 аргументи: 2 позиційних аргументи та один аргумент any_dictionary.
 #Функція додає до словника один елемент(пару key:value) з двох прийнятих позиційних аргументів
 
-def student_info(student,course,any_dictionary={'age': '16', 'city':'Kiev', 'sex':'female'}):
-    return  f"{student}: {course}"
-result = student_info('Lilly','IT')
-print(result)
-any_dictionary = {'age': '16', 'city':'Kiev', 'sex':'female'}
-any_dictionary['Lilly'] = 'IT'
-print(any_dictionary)
- 
 
-# Task 3 
+def student_info(student, course, any_dictionary = {'age': '16', 'city':'Kiev', 'sex':'female'}):
+    for element in any_dictionary:
+        any_dictionary['Lilly'] = 'IT'
+        return any_dictionary
+print(student_info('Lilly','IT'))  
+
+
+#Task 3 
 #Відрефакторити калькулятор використовуючи функції
+
 def welcome(username):
     print(f"""
     Hello, {username}!
@@ -48,40 +48,44 @@ def menu():
      q - quit 
      Choose from the list: """)
     return options 
- 
-    
-def add_func():
-    add_result = first_number + second_number
-    print("Result",add_result)
-def sub_func():
-    sub_result = first_number - second_number
-    print("Result",sub_result)    
-    
-def mul_func():
-    mul_result = first_number * second_number
-    print("Result",mul_result)    
 
-def div_func():
-    if second_number == 0:
-        print( "Dividing by zero is not allowed")
-    div_result = first_number / second_number
-    print("Result",div_result)    
+
+def add_func(first_number, second_number):
+    return int(first_number) + int(second_number)
+
+def sub_func(first_number, second_number):
+    return  int(first_number) - int(second_number)
+    
+def mul_func(first_number, second_number):
+    return int(first_number) * int(second_number)
+
+def div_func(first_number, second_number):
+    return int(first_number) / int(second_number)
 
 
 while True:
     option = menu()
-    first_number = int(input("Enter first number: "))
-    second_number = int(input("Enter second number: "))
-    if option =='q':
-        print("Ok, bye")
-        break
-    elif option == 'add_func':
-        add_func()
-    elif option == 'sub_func':
-        sub_func()
-    elif option == 'mul_func':
-        mul_func()
-    elif option == 'div_func':
-        div_func()
+    first_number = input("Enter first number: ")
+    second_number = input("Enter second number: ")
+    if first_number.isdigit():
+        if second_number.isdigit():
+            if option =='q':
+                print("Ok, bye")
+                break                
+            elif option == 'add_func':
+                print(first_number, '+', second_number, '=', add_func(first_number, second_number))
+            elif option == 'sub_func':
+                print(first_number, '-', second_number, '=', sub_func(first_number, second_number))
+            elif option == 'mul_func':
+                print(first_number, '*', second_number, '=', mul_func(first_number, second_number))
+            elif option == 'div_func':
+                if second_number == '0':
+                    print("Dividing by zero is not allowed")
+                else: 
+                    print(first_number, '/', second_number, '=', div_func(first_number, second_number))
+            else:
+                print(f"{option} isn't developed yet")                 
+        else:
+            print("Second number isn't a digit")
     else:
-        print(f"{option} isn't developed yet")
+        print("First number isn't a digit")
