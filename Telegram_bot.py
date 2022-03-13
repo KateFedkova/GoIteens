@@ -1,7 +1,7 @@
 #GoIteens_math
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
-TOKEN = '5286322882:AAFJgbOHA8lxCeb4YlZcn3-A50r61rJnKYk'
+#Token
 updater = Updater(TOKEN, use_context=True)
 
 dispatcher = updater.dispatcher
