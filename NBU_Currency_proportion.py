@@ -4,7 +4,7 @@ import requests
 from telegram.ext import Updater, CommandHandler,MessageHandler,Filters
 from telegram import KeyboardButton, ReplyKeyboardMarkup
 
-Token = "5263522363:AAGpPQg0WqnV9TFvi6cToES57idg5KwZBa8"
+#Token
 
 print("Bot is up")
 
