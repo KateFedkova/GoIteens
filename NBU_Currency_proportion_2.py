@@ -59,6 +59,7 @@ def find_date(update,context):
         rate = currency[0]['rate']
         message = f"{valid_date(update,context)} - {info[0]} rate: {rate} UAH"
         context.bot.send_message(chat_id=chat.id, text=message)
+        logging(update,info)
 
 
 def valid_date(update,context):
@@ -73,6 +74,21 @@ def valid_date(update,context):
         context.bot.send_message(chat_id=chat.id, text='''Невірний формат,спробуйте ще раз"
 find_info''')
 
+def logging(update,info):
+    chat = update.effective_chat
+    json_obj = [
+        {
+        'cc': info[0],
+        'date and time': str(datetime.datetime.now()),
+        'user\'s first name': str(update.message.chat.first_name),
+        'exchangedate': info[1]
+        }
+    ]
+    json_file = open('currency_info.json', 'w')
+    json.dump(json_obj, json_file, indent=2, ensure_ascii=False)
+    json_file.close()        
+        
+        
 dispatcher.add_handler(CommandHandler('start', start))
 dispatcher.add_handler(CommandHandler('help', help))
 dispatcher.add_handler(CommandHandler('find_info',find_info))
