@@ -29,20 +29,6 @@ def menu():
      Оберіть: """)
     return options 
 
-def characteristic_desicion(characteristic):
-    if characteristic == 'Папір офісний':
-        items.copy_paper()
-        return items.add_copy_paper()
-    elif characteristic == 'Настільне приладдя':
-        items.for_table()
-        return items.add_for_table()
-    elif characteristic == 'Письмове приладдя':
-        items.writing_instruments()
-        return items.add_writ_inst()
-    elif characteristic == 'Скотч, стрейч-плівка':
-        items.scotch()
-        return items.add_scotch()
-    return "Ви не можете додати товар такої категорії!"
     
 def storage_filling(list_storage):
     goods = [
@@ -71,18 +57,32 @@ class Store:
         
         Введіть категорію товару: ''')
         return characteristic
-    
+   
+    def characteristic_desicion(self, characteristic):
+        if characteristic == 'Папір офісний':
+            brand,colour,format_of_paper,num_of_paper,price = items.copy_paper()
+            return items.add_copy_paper(brand,colour,format_of_paper,num_of_paper,price)
+        elif characteristic == 'Настільне приладдя':
+            brand_t,size,material,price_t = items.for_table()
+            return items.add_for_table(brand_t,size,material,price_t)
+        elif characteristic == 'Письмове приладдя':
+            brand_w,diametr,colour_of,price_w,line = items.writing_instruments()
+            return items.add_writ_inst(brand_w,diametr,colour_of,price_w,line)
+        elif characteristic == 'Скотч, стрейч-плівка':
+            brand_s,size_s,wide,scale_s,colour_of_s,length,price_s = items.scotch()
+            return items.add_scotch(brand_s,size_s,wide,scale_s,colour_of_s,length,price_s)
+        return "Ви не можете додати товар такої категорії!"    
     
     def copy_paper(self):
-        global brand,colour,format_of_paper,num_of_paper,price
         brand = input("Введіть торгову марку: ").capitalize()
         colour = input("Введіть колір: ").capitalize()
         format_of_paper = input("Введіть формат паперу: ").capitalize()
         num_of_paper = input("Введіть кількість листів: ").capitalize()
         price = input("Введіть вартість: ").capitalize()
+        return brand,colour,format_of_paper,num_of_paper,price
         
     
-    def add_copy_paper(self):
+    def add_copy_paper(self,brand,colour,format_of_paper,num_of_paper,price):
         result_dict = {'категорія': "Папір офісний", 'торгова марка': f"{brand}", ' колір': f"{colour}", ' формат паперу': f"{format_of_paper}", 'кількість листів': f"{num_of_paper}",'вартість': f"{price}"}
         if result_dict not in self.list_storage:
             self.list_storage.append(result_dict)
@@ -92,13 +92,13 @@ class Store:
             return "Такий товар вже є!" 
         
     def for_table(self):
-        global brand_t,size,material,price_t
         brand_t = input("Введіть торгову марку: ").capitalize()
         size = input("Введіть розмір: ").capitalize()
         material = input("Введіть матеріал: ").capitalize()
         price_t = input("Введіть вартість: ").capitalize()
+        return brand_t,size,material,price_t
     
-    def add_for_table(self):
+    def add_for_table(self,brand_t,size,material,price_t):
         result_dict = {'категорія': "Настільне приладдя", 'торгова марка': f"{brand_t}", 'розмір': f"{size}", 'матеріал': f"{material}",'вартість': f"{price_t}"}
         if result_dict not in self.list_storage:
             self.list_storage.append(result_dict)
@@ -108,14 +108,14 @@ class Store:
             return "Такий товар вже є!" 
         
     def writing_instruments(self):
-        global brand_w,diametr,colour_of,lin,price_w,line
         brand_w = input("Введіть торгову марку: ").capitalize()
         diametr = input("Введіть діаметр стрижня: ").capitalize()
         colour_of = input("Введіть колір чорнила: ").capitalize()
         line = input("Введіть товщину лінії: ").capitalize()
         price_w = input("Введіть вартість: ").capitalize()
+        return brand_w,diametr,colour_of,price_w,line
         
-    def add_writ_inst(self):
+    def add_writ_inst(self,brand_w,diametr,colour_of,price_w,line):
         result_dict = {'категорія': "Письмове приладдя", 'торгова марка': f"{brand_w}", 'діаметр стрижня': f"{diametr}", 'колір чорнила': f"{colour_of}", 'товщина лінії': f"{line}",'вартість': f"{price_w}"}
         if result_dict not in self.list_storage:
             self.list_storage.append(result_dict)
@@ -125,7 +125,6 @@ class Store:
             return "Такий товар вже є!"
         
     def scotch(self):
-        global brand_s,size_s,wide,scale_s,colour_of_s,length,price_s
         brand_s = input("Введіть торгову марку: ").capitalize()
         size_s = input("Введіть розмір: ").capitalize()
         wide = input("Введіть ширину: ").capitalize()
@@ -133,8 +132,9 @@ class Store:
         colour_of_s = input("Введіть колір: ").capitalize()
         length = input("Введіть довжину лінії: ").capitalize()
         price_s = input("Введіть вартість: ").capitalize()
+        return brand_s,size_s,wide,scale_s,colour_of_s,length,price_s
         
-    def add_scotch(self):
+    def add_scotch(self,brand_s,size_s,wide,scale_s,colour_of_s,length,price_s):
         result_dict = {'категорія': "Скотч, стрейч-плівка", 'торгова марка': f"{brand_s}", 'розмір': f"{size_s}", 'ширина': f"{scale_s}", 'колір': f"{colour_of_s}", 'довжина лінії': f"{length}",'вартість': f"{price_s}"}
         if result_dict not in self.list_storage:
             self.list_storage.append(result_dict)
@@ -148,7 +148,8 @@ class Store:
         return Store.number_of_items 
     
     def all_items(self):
-        return self.list_storage    
+        for element in self.list_storage:
+            print(element)
    
     
     def del_func(self):
@@ -182,7 +183,6 @@ class Store:
                         element['коментарій'] = comment
                         return "Успішно додано!"
     
-        
 
 hello(user_name()) 
 
@@ -198,7 +198,7 @@ while True:
         break    
     elif option == "add_func":
         characteristic = items.characteristic()
-        print(characteristic_desicion(characteristic))
+        print(items.characteristic_desicion(characteristic))
     elif option == "search_func":
         print(items.search_func())
     elif option == "del_func":
@@ -206,7 +206,7 @@ while True:
     elif option == "num_of_items_func":
         print(items.num_of_items_func())
     elif option == "all_items":
-        print(items.all_items())
+        items.all_items()
     elif option == "review_func":
         print(items.review_func())
     else:
