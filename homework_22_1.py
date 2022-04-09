@@ -1,6 +1,5 @@
 import random
 class Human:
-    #  чтобы их можно было удалять ученикf  можно созать super deleater чтобы удалял пользователя делитеры должнеы быть вездле 
     def __init__(self, name, last, age, birthday, zodiac_sign, hobby, favourite_book=None, favourite_film=None):
         self.name = name
         self.last = last
