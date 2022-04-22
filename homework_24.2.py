@@ -26,7 +26,7 @@ class BankAccount:
         result_dict = {'name': f"{self.__name}", 'num_of_card': f"{self.__num_of_card}", 'pin': f"{self.__pin}",'balance': f"{self.__balance}"}
         BankAccount.list_for_info.append(result_dict)
 
-    def confirm_PIN(self):
+    def confirm_pin(self):
         num_of_trying = 0
         while num_of_trying < 4:
             pin_ = input('Pin: ')
@@ -38,7 +38,7 @@ class BankAccount:
         print("Кількість спроб вичерпана")
 
     def info_from_card(self):
-        if self.confirm_PIN():
+        if self.confirm_pin():
             self._BankAccount__append_info()
         return False
 
@@ -113,13 +113,28 @@ Bилучення грошей з банкомату інкасаторами: 3
 Оберіть: """)
         return option
 
-    def __get_info(self):
-        for element in BankAccount.list_for_info:
-            name = element['name']
-            num_of_card = element['num_of_card']
-            pin = element['pin']
-            balance = element['balance']
-            return element, name, num_of_card, pin, balance
+    def conf_pin_bef_getting(self):
+        num_of_trying = 0
+        while num_of_trying < 4:
+            pin_ = input('Pin: ')
+            for element in BankAccount.list_for_info:
+                if int(element['pin']) == int(pin_):
+                    return True
+                else:
+                    num_of_trying += 1
+                    print("Неправильний пін-код")
+        print("Кількість спроб вичерпана")
+        exit()
+
+    def get_info(self):
+        if self.conf_pin_bef_getting():
+            for element in BankAccount.list_for_info:
+                name = element['name']
+                num_of_card = element['num_of_card']
+                pin = element['pin']
+                balance = element['balance']
+                return element, name, num_of_card, pin, balance
+        return False
 
     def time_logger(func):
         import logging
@@ -218,7 +233,7 @@ while True:
     account_1.info_from_card()
     if place == '1':
         option = bank.bank_menu()
-        element, name, num_of_card, pin, balance = bank._Cash_Machine__get_info()
+        element, name, num_of_card, pin, balance = bank.get_info()
         if option == '1':
             new_balance = bank.replenish_balance(balance)
             bank.return_info(new_balance)
