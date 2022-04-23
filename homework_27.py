@@ -25,9 +25,10 @@ for el in squares:
 def generate_password():
     for i in range(1000):
         password = create_password()
-        yield password
         f = open('passwords.txt', 'a')
         f.write(f"{password}\n")
+        yield password
+
 
 def create_password():
     password = ''
@@ -37,7 +38,7 @@ def create_password():
     if password.find('!@$%^&*_') and any(el.isupper() for el in password) and any(el.islower() for el in password) and any(el.isdigit() for el in password):
         return password
     else:
-         return f"{password} - недостатньо безпечний"
+        return f"{password} - недостатньо безпечний"
 
 
 passwords = generate_password()
@@ -46,18 +47,30 @@ for el in passwords:
 
 #Hаписати власний генератор, який повертає значення як це робить range():може приймати start, end, step і поверне відповідні згенеровані значення
 
-def range(start, end, step):
-    number = start
-    if number < end:
-        while number < end:
-            yield number
-            number += int(step)
-    if number > end:
-        while number > end:
-            yield number
-            number += int(step)
+def own_range(start=0, end=None, step=1):
+    if end is None:
+        end, start = start, 0
 
-numbers = range(17, 3, -2)
+    if end > start and step < 0:
+        yield None
+        exit()
+
+    elif end < start and step > 0:
+        yield None
+        exit()
+
+    if start < end:
+        while start < end:
+            yield start
+            start += step
+
+    elif start > end:
+        step = -1
+        while start > end:
+            yield start
+            start += step
+
+numbers = own_range(3, 9, 5)
 for el in numbers:
     print(el)
 
