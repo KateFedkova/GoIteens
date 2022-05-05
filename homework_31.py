@@ -45,41 +45,39 @@ class Open_Directory:
         self.index = 0
 
     def __enter__(self):
-        os.mkdir(self.name_of_dir)
-        os.chdir(self.name_of_dir)
-        while self.index <= len(self.name_of_files):
-            try:
+        if not os.path.isdir(self.name_of_dir):
+            os.mkdir(self.name_of_dir)
+            os.chdir(self.name_of_dir)
+            for i in self.name_of_files:
                 self.file = open(self.name_of_files[self.index] + '.txt', mode="w")
                 self.file.close()
                 self.index += 1
-            except IndexError:
-                print('Index out of range')
-                break
+        else:
+            print('Impossible to create file')
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         os.chdir(self.cwd)
 
-with Open_Directory('new_directory', "first", "second"):
-    print('Done')
+#with Open_Directory('new_directory', "first", "second"):
+    #print('Done')
 
 @contextmanager
 def create_directory(name_of_dir, *args):
     name_of_files = args
     cwd = os.getcwd()
     index = 0
-    os.mkdir(name_of_dir)
-    os.chdir(name_of_dir)
-    while index <= len(name_of_files):
-        try:
+    if not os.path.isdir(name_of_dir):
+        os.mkdir(name_of_dir)
+        os.chdir(name_of_dir)
+        for i in name_of_files:
             f = open(name_of_files[index] + '.txt', mode="w")
             f.close()
             index += 1
-        except IndexError:
-            print('Index out of range')
-            break
+    else:
+        print('Impossible to create file')
     yield
     os.chdir(cwd)
 
 
-#with create_directory('new_directory', "first", "second"):
-    #print('Done')
+with create_directory('new_directory', "first", "second"):
+    print('Done')
