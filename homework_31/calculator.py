@@ -1,5 +1,5 @@
 '''Task 1
-#Відрефакторити калькулятор:винести усі функції в окремий файл, винести усі перевірки/валідації в окремий файл'''
+Відрефакторити калькулятор:винести усі функції в окремий файл, винести усі перевірки/валідації в окремий файл'''
 
 from math_functions import add_func, sub_func, mul_func, div_func, menu
 from number_validation import numbers, number_validation
