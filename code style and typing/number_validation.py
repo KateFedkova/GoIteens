@@ -19,4 +19,3 @@ def numbers() -> Any:
     second_number = input("Enter second number: ")
     return first_number, second_number
   
-  
