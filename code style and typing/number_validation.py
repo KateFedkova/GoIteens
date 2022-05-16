@@ -18,3 +18,5 @@ def numbers() -> Any:
     first_number = input("Enter first number: ")
     second_number = input("Enter second number: ")
     return first_number, second_number
+  
+  
