@@ -37,3 +37,4 @@ def div_func(first_number: Union[int, float],
              second_number: Union[int, float]) -> float:
     '''Divide 2 numbers'''
     return float(first_number) / float(second_number)
+
