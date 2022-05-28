@@ -19,7 +19,7 @@ def palindrome(word: str) -> None:
     palindrome(word)
 
 
-#print(palindrome('abbsfgsa'))
+print(palindrome('abbsfgsa'))
 
 # Task 1*
 # щоб функція працювала з реченням
