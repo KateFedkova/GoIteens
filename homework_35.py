@@ -51,29 +51,15 @@ print(palindrome_sentence('evil olive'))
 # яка повертатиме суму усіх чисел в списку
 
 
-def ordinary_list(list_of_n: list):
-    new = []
-    while list_of_n:
-        e = list_of_n.pop()
-        if type(e) == list:
-            list_of_n.extend(e)
+def add_func(list_of: list, all_sum: int = 0):
+
+    for i in list_of:
+        if type(i) == list:
+            all_sum += add_func(i)
         else:
-            new.append(e)
-    return new
+            all_sum += i
+
+    return all_sum
 
 
-def add_func(list_of: list, index: int = 0, all_sum: int = 0) -> None:
-
-    if len(list_of) - 1 < index:
-        print(all_sum)
-        return
-
-    if type(list_of[index]) == int:
-        all_sum += list_of[index]
-
-    add_func(list_of, index + 1, all_sum)
-
-
-num = ordinary_list([2, 3, [1, 2], [4, 5, [10, 1]]])
-
-print(add_func(num))
+print(add_func([2, 3, [1, 2], [4, 5, [10, 1]]]))
