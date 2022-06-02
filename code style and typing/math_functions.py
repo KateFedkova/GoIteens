@@ -35,7 +35,8 @@ def mul_func(first_number: Union[int, float],
 
 def div_func(first_number: Union[int, float],
              second_number: Union[int, float]) -> float:
-    '''Divide 2 numbers'''
+    """Divide 2 numbers
+    If second number is 0, div_func won't be triggered"""
     return float(first_number) / float(second_number)
 
 
