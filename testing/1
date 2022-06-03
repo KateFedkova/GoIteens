@@ -42,19 +42,23 @@ def buttons(update,context):
     context.bot.send_message(chat_id=chat.id,text= "Оберіть валюту",reply_markup=ReplyKeyboardMarkup(buttons))
 
 
-def currency_proportion(update, context, *args):
+def find_value(update, context):
     chat = update.effective_chat
     currency_code = update.message.text
-    if currency_code in ('USD','EUR','PLN','BGN','ILS','TRY','GBP','CHF','DKK','EGP'):
-        currency_rate = requests.get(f"https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode={currency_code}&date=20220313&json").json()
-        currency_rate = currency_rate[0]['rate']
-        context.bot.send_message(chat_id=chat.id, text=f"{currency_rate}")
+    if currency_code in ('USD', 'EUR', 'PLN', 'BGN', 'ILS', 'TRY', 'GBP', 'CHF', 'DKK', 'EGP'):
+        currency_rate = requests.get(f"https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode={currency_code}&date=20220313&json")
+
+
+def currency_proportion(update, context):
+    chat = update.effective_chat
+    currency_rate = currency_rate[0]['rate']
+    context.bot.send_message(chat_id=chat.id, text=f"{currency_rate}")
 
 
 dispatcher.add_handler(CommandHandler('start', start))
 dispatcher.add_handler(CommandHandler('help', help))
 dispatcher.add_handler(CommandHandler('currency', buttons))
-dispatcher.add_handler(MessageHandler(Filters.all, currency_proportion))
+dispatcher.add_handler(MessageHandler(Filters.all, find_value))
 
 
 update.start_polling()
