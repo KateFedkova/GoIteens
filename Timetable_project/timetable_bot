@@ -1,0 +1,269 @@
+from telegram.ext import Updater, CommandHandler, \
+    MessageHandler, Filters, ConversationHandler
+
+from telegram import KeyboardButton, ReplyKeyboardMarkup
+from contextlib import contextmanager
+import os
+import datetime
+
+
+Token = "5315495193:AAEeujeB9f4Wxi0bJmT1OyC5t4atF_9Hw_Q"
+
+print("Bot is up")
+
+update = Updater(Token)
+dispatcher = update.dispatcher
+
+
+def start(update, context):
+    chat = update.effective_chat
+    context.bot.send_message(chat_id=chat.id,
+                             text='''Привіт!
+
+Це ITimetable_bot
+
+Я допоможу організувати твій час!
+
+Натисни /help, щоб дізнатися більше''')
+
+
+def help(update, context):
+    chat = update.effective_chat
+    context.bot.send_message(chat_id=chat.id,
+                             text='''В цьому боті ти можеш:
+
+     додавати зустрічі,
+
+     видаляти їх
+
+Ти не забудеш про зустріч, бо
+можеш подивитися, які зустрічі будуть в цей день!!!
+
+Почни планувати свій день: /buttons
+Якщо хочете відмінити функцію планування, введіть /close''')
+
+
+def buttons(update, context):
+    chat = update.effective_chat
+    buttons = [[KeyboardButton('Додати нову зустріч')],
+               [KeyboardButton('Видалити зустріч')],
+               [KeyboardButton('Подивитися сьогоднішні зустрічі')]]
+    context.bot.send_message(chat_id=chat.id,
+                             text="Оберіть",
+                             reply_markup=ReplyKeyboardMarkup(buttons))
+
+
+@contextmanager
+def create_directory(name_of_file, info_in_file):
+    cwd = os.getcwd()
+    if not os.path.isdir("Timetable_Information"):
+        os.mkdir("Timetable_Information")
+        os.chdir("Timetable_Information")
+        f = open(name_of_file + '.txt', mode="w")
+        f.write(str(info_in_file) + '\n')
+        f.close()
+    else:
+        os.chdir("Timetable_Information")
+        f = open(name_of_file + '.txt', mode="a")
+        f.write(str(info_in_file) + '\n')
+        f.close()
+    yield
+    os.chdir(cwd)
+
+
+def new_meeting_day(update, context):
+    update.message.reply_text(text="Оберіть день зустрічі")
+    return 1
+
+
+def first_response(update, context):
+    day = update.message.text
+    if int(day) and 0 < int(day) < 32:
+        global list_f_info
+        list_f_info = list_of_info({}, "day", day)
+        update.message.reply_text(text="Оберіть "
+                                       "місяць зустрічі у форматі: 01 ...")
+        return 2
+    else:
+        conv_end(update, context)
+
+
+def second_response(update, context):
+    month = update.message.text
+    if int(month) and len(month) == 2:
+        global list_f_info_1
+        list_f_info_1 = list_of_info(list_f_info, "month", month)
+        update.message.reply_text(text="Оберіть час зустрічі")
+        return 3
+    else:
+        conv_end(update, context)
+
+
+def third_response(update, context):
+    time = update.message.text
+    if 0 < int(time.split(':')[0]) < 24 and 0 < int(time.split(':')[0]) < 60:
+        global list_f_info_2
+        list_f_info_2 = list_of_info(list_f_info_1, "time", time)
+        update.message.reply_text(text="Введіть назву зустрічі")
+        return 4
+    else:
+        conv_end(update, context)
+
+
+def fourth_response(update, context):
+    name = update.message.text
+    name_of_file = f"{update.message.chat.first_name}_{update.message.chat.id}"
+    list_f_info_3 = list_of_info(list_f_info_2, "title", name)
+    with create_directory(name_of_file, list_f_info_3):
+        update.message.reply_text(text="Успішно записано!")
+    return ConversationHandler.END
+
+
+def close(update, context):
+    update.message.reply_text(text='До зустрічі!')
+    return ConversationHandler.END
+
+
+def list_of_info(list_f_info, key_word, arg_word):
+    list_f_info[key_word] = arg_word
+    return list_f_info
+
+
+def del_meeting_day(update, context):
+    update.message.reply_text(text="Оберіть день зустрічі")
+    return 5
+
+
+def fifth_response(update, context):
+    day = update.message.text
+    if int(day) and 0 < int(day) < 32:
+        global num_line
+        num_line = check_if_true(update,  day)
+        update.message.reply_text(text="Оберіть "
+                                       "місяць зустрічі у форматі: 01 ...")
+        return 6
+    else:
+        conv_end(update, context)
+
+
+def sixth_response(update, context):
+    month = update.message.text
+    if int(month) and len(month) == 2:
+        global num_line_2
+        num_line_2 = check_if_true(update, month)
+        if num_line == num_line_2:
+            update.message.reply_text(text="Введіть назву зустрічі")
+            return 7
+    else:
+        conv_end(update, context)
+
+
+def seventh_response(update, context):
+    name = update.message.text
+    num_line_3 = check_if_true(update, name)
+    if num_line_3 == num_line_2:
+        del_from_file(update, num_line_3)
+        update.message.reply_text(text="Успішно видалено!")
+        return ConversationHandler.END
+
+
+def del_from_file(update, num_line):
+    cwd = os.getcwd()
+    os.chdir("Timetable_Information")
+    with open(f"{update.message.chat.first_name}_"
+              f"{update.message.chat.id}" + ".txt", 'r') as f:
+        lines = f.readlines()
+    with open(f"{update.message.chat.first_name}_"
+              f"{update.message.chat.id}" + ".txt", 'w') as f:
+        for number, line in enumerate(lines):
+            if number != num_line:
+                f.write(line)
+    os.chdir(cwd)
+
+
+def all_meetings(update, context):
+    all_lines = read_file(update)
+    for line in all_lines:
+        first = line.strip()
+        check(update, first)
+
+
+def read_file(update):
+    cwd = os.getcwd()
+    os.chdir("Timetable_Information")
+    f = open(f"{update.message.chat.first_name}_"
+             f"{update.message.chat.id}" + '.txt', mode="r")
+    all_lines = f.readlines()
+    os.chdir(cwd)
+    return all_lines
+
+
+def check(update, first):
+    d = datetime.date.today()
+    d_now = f"{d.day}.{d.month}"
+    d_l = f"{first[9]}{first[10]}.{first[25]}"
+    if d_now == d_l:
+        update.message.reply_text(text=first)
+
+
+def check_if_true(update, arg_word):
+    cwd = os.getcwd()
+    os.chdir("Timetable_Information")
+    f = open(f"{update.message.chat.first_name}_"
+             f"{update.message.chat.id}" + '.txt', mode="r")
+    for num_line, line in enumerate(f):
+        if arg_word in line:
+            os.chdir(cwd)
+            return num_line
+    os.chdir(cwd)
+
+
+def conv_end(update, context):
+    update.message.reply_text(text="Не відповідає дійсності. "
+                                   "Почніть ще раз спочатку! /close")
+    return ConversationHandler.END
+
+
+conv_hand_add = ConversationHandler(
+    entry_points=[MessageHandler(Filters.regex(r'Додати'), new_meeting_day)],
+    states={
+        1: [MessageHandler(Filters.text & (~ Filters.command),
+                           first_response)],
+        2: [MessageHandler(Filters.text & (~ Filters.command),
+                           second_response)],
+        3: [MessageHandler(Filters.text & (~ Filters.command),
+                           third_response)],
+        4: [MessageHandler(Filters.text & (~ Filters.command),
+                           fourth_response)],
+    },
+    fallbacks=[CommandHandler('close', close)],
+)
+
+
+conv_hand_del = ConversationHandler(
+    entry_points=[MessageHandler(Filters.regex
+                                 (r'Видалити зустріч'), del_meeting_day)],
+    states={
+        5: [MessageHandler(Filters.text & (~ Filters.command),
+                           fifth_response)],
+        6: [MessageHandler(Filters.text & (~ Filters.command),
+                           sixth_response)],
+        7: [MessageHandler(Filters.text & (~ Filters.command),
+                           seventh_response)],
+    },
+    fallbacks=[CommandHandler('close', close)],
+)
+
+
+dispatcher.add_handler(CommandHandler('start', start))
+dispatcher.add_handler(CommandHandler('help', help))
+dispatcher.add_handler(CommandHandler('buttons', buttons))
+dispatcher.add_handler(CommandHandler('seemeeting', all_meetings))
+dispatcher.add_handler(MessageHandler(
+    Filters.regex(r'Подивитися сьогоднішні зустрічі'), all_meetings))
+dispatcher.add_handler(conv_hand_add)
+dispatcher.add_handler(conv_hand_del)
+
+
+update.start_polling()
+update.idle()
