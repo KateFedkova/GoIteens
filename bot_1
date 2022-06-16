@@ -1,0 +1,126 @@
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, ConversationHandler, CallbackQueryHandler
+
+from telegram import KeyboardButton, ReplyKeyboardMarkup
+from contextlib import contextmanager
+import os
+
+Token = "5315495193:AAEeujeB9f4Wxi0bJmT1OyC5t4atF_9Hw_Q"
+
+print("Bot is up")
+
+update = Updater(Token)
+dispatcher = update.dispatcher
+
+
+def start(update, context):
+    chat = update.effective_chat
+    context.bot.send_message(chat_id=chat.id, text='''Привіт! 
+    
+Це ITimetable_bot
+
+Я допоможу організувати твій час!
+
+Натисни /help, щоб дізнатися більше''')
+
+
+def help(update, context):
+    chat = update.effective_chat
+    context.bot.send_message(chat_id=chat.id, text='''В цьому боті ти можеш:
+    
+     додавати зустрічі, 
+     
+     видаляти їх,
+      
+     дивитися повний список
+     
+Ти не забудеш про зустріч, бо бот буде нагадувати про неї за 5 хвилин до початку!!!
+
+Почни планувати свій день: /buttons
+Якщо хочете відмінити функцію планування, введіть /close''')
+
+
+def buttons(update, context):
+    chat = update.effective_chat
+    buttons = [[KeyboardButton('Додати нову зустріч')], [KeyboardButton('Видалити зустріч')], [KeyboardButton('Подивитися всі зустрічі')]]
+    context.bot.send_message(chat_id=chat.id, text="Оберіть", reply_markup=ReplyKeyboardMarkup(buttons))
+
+
+@contextmanager
+def create_directory(name_of_file, info_in_file):
+    cwd = os.getcwd()
+    if not os.path.isdir("Timetable_Information"):
+        os.mkdir("Timetable_Information")
+        os.chdir("Timetable_Information")
+        f = open(name_of_file + '.txt', mode="w")
+        f.write(info_in_file + '\n')
+        f.close()
+    else:
+        os.chdir("Timetable_Information")
+        f = open(name_of_file + '.txt', mode="a")
+        f.write(info_in_file + '\n')
+        f.close()
+    yield
+    os.chdir(cwd)
+
+
+def new_meeting_day(update, context):
+    chat = update.effective_chat
+    update.message.reply_text(text="Оберіть день зустрічі")
+    return 1
+
+
+def first_response(update, context):
+    day = update.message.text
+    if int(day) and 1 < day < 31:
+        name_of_file = f"{update.message.chat.first_name}_{update.message.chat.id}"
+        update.message.reply_text(text="Оберіть місяць зустрічі")
+        return 2
+    else:
+        update.message.reply_text(text="Не відповідає дійсності")
+        return ConversationHandler.END
+
+
+
+#def second_response(update):
+    #month = update.message.text
+    #name_of_file = f"{update.message.chat.first_name}_{update.message.chat.id}"
+    #with create_directory(name_of_file, month):
+        #update.message.reply_text(text="Оберіть час зустрічі")
+    #return 3
+
+
+#def third_response(update):
+    #time = update.message.text
+    #name_of_file = f"{update.message.chat.first_name}_{update.message.chat.id}"
+    #with create_directory(name_of_file, time):
+        #update.message.reply_text(text="Успішно записано!")
+    #return ConversationHandler.END
+
+
+
+def close(update, context):
+    chat = update.effective_chat
+    update.message.reply_text(text='До зустрічі!')
+    return ConversationHandler.END
+
+
+conv_hand_add = ConversationHandler(
+    entry_points=[MessageHandler(Filters.regex(r'Додати'), new_meeting_day)],
+    states={
+        1: [MessageHandler(Filters.text, first_response)],
+        #2: [MessageHandler(Filters.text, second_response, pass_user_data=True)],
+        #3: [MessageHandler(Filters.text, third_response, pass_user_data=True)],
+    },
+    fallbacks=[CommandHandler('close', close)],  
+)
+
+
+
+dispatcher.add_handler(CommandHandler('start', start))
+dispatcher.add_handler(CommandHandler('help', help))
+dispatcher.add_handler(CommandHandler('buttons', buttons))
+dispatcher.add_handler(conv_hand_add)
+
+
+update.start_polling()
+update.idle()
