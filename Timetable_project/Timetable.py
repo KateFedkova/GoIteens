@@ -101,7 +101,8 @@ def get_day(update, context):
         global list_f_info_1
         list_f_info_1 = list_of_info(list_f_info, "day", day)
         update.message.reply_text(text="Введіть годину,"
-                                       " о котрій починається зустріч у форматі 11:00")
+                                       " о котрій починається"
+                                       " зустріч у форматі 11:00")
         return TIME
     else:
         conv_end(update, context)
@@ -270,7 +271,8 @@ def del_month(update, context):
     global month_del
     month_del = update.message.text
     d = datetime.date.today()
-    if d.month <= int(month_del[1]) and int(month_del) < 13 and len(month_del) == 2:
+    if d.month <= int(month_del[1]) and \
+            int(month_del) < 13 and len(month_del) == 2:
         global num_line
         num_line = check_if_true(update, month_del)
         update.message.reply_text(text="Оберіть день зустрічі")
