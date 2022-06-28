@@ -1,11 +1,12 @@
+import os
+import datetime
+import json
 from telegram.ext import Updater, CommandHandler, \
     MessageHandler, Filters, ConversationHandler
 
 from telegram import KeyboardButton, ReplyKeyboardMarkup
 from contextlib import contextmanager
 from settings import TOKEN
-import os
-import datetime
 
 
 print("Bot is up")
@@ -71,36 +72,58 @@ def create_directory(name_of_file, info_in_file):
 
 def new_meeting_day(update, context):
     """Send message to opt a day"""
-    update.message.reply_text(text="Оберіть день зустрічі")
-    return DAY
-
-
-def get_day(update, context):
-    """Check if this day exists and ask for a month"""
-    global day
-    day = update.message.text
-    if int(day) and 0 < int(day) < 32:
-        global list_f_info
-        list_f_info = list_of_info({}, "day", day)
-        update.message.reply_text(text="Оберіть "
-                                       "місяць зустрічі у форматі: 01 ...")
-        return MONTH
-    else:
-        conv_end(update, context)
+    update.message.reply_text(text="Оберіть місяць зустрічі у форматі: 01 ...")
+    return MONTH
 
 
 def get_month(update, context):
     """Check if this month exists and ask for the time"""
     global month
     month = update.message.text
-    if int(month) and len(month) == 2:
+    d = datetime.date.today()
+    if d.month <= int(month[1]) and int(month) < 13 and len(month) == 2:
+        global list_f_info
+        list_f_info = list_of_info({}, "month", month)
+        update.message.reply_text(text="Оберіть день зустрічі")
+        return DAY
+    else:
+        conv_end(update, context)
+
+
+def get_day(update, context):
+    """Check if this day exists and ask for a month"""
+    global day
+    day = update.message.text
+    d = datetime.date.today()
+    if d.day > int(day) and int(month[1]) == d.month:
+        conv_end(update, context)
+    elif check_month(month, day):
         global list_f_info_1
-        list_f_info_1 = list_of_info(list_f_info, "month", month)
-        update.message.reply_text(text="Оберіть час "
-                                       "зустрічі у форматі: 10:00 ...")
+        list_f_info_1 = list_of_info(list_f_info, "day", day)
+        update.message.reply_text(text="Введіть годину,"
+                                       " о котрій починається зустріч у форматі 11:00")
         return TIME
     else:
         conv_end(update, context)
+
+
+def check_month(month, day):
+    thirty_month = ["04", "06", "09", "11"]
+    short_month = "02"
+    thirty_one_month = ["01", "03", "05", "07", "08", "10", "12"]
+    d = datetime.date.today()
+    if month in thirty_month and int(day) and 0 < int(day) < 31:
+        return True
+    elif month in thirty_one_month and int(day) and 0 < int(day) < 32:
+        return True
+    elif month == short_month:
+        if d.year % 4 == 0 and d.year % 100 != 0 or d.year % 400 == 0:
+            if int(day) and 0 < int(day) < 30:
+                return True
+        else:
+            if int(day) and 0 < int(day) < 29:
+                return True
+    return False
 
 
 def get_time(update, context):
@@ -118,24 +141,6 @@ def get_time(update, context):
         conv_end(update, context)
 
 
-def get_end_meeting(update, context):
-    """Check if time exists and ask for a time when a meeting wiil end"""
-    global end
-    end = update.message.text
-    if 0 <= int(end.split(':')[0]) <= 24 and 0 <= int(end.split(':')[1]) <= 60:
-        global list_f_info_3
-        list_f_info_3 = list_of_info(list_f_info_2, "end", end)
-        if not empty_file(update):
-            if not clash_duration(update, day, month):
-                return ConversationHandler.END
-            else:
-                update.message.reply_text(text="Введіть назву зустрічі")
-                return NAME
-        else:
-            update.message.reply_text(text="Введіть назву зустрічі")
-            return NAME
-
-
 def split_time(time, end):
     time_split = f"{time.split(':')[0]}{time.split(':')[1]}"
     end_split = f"{end.split(':')[0]}{end.split(':')[1]}"
@@ -149,11 +154,18 @@ def clash_duration(update, day, month):
     f = open(f"{update.message.chat.first_name}_"
              f"{update.message.chat.id}" + '.txt', mode="r")
     for line in f.readlines():
-        if day and month in line:
-            end_time_l = f"{line[53]}{line[54]}{line[56]}{line[57]}"
-            time_l = f"{line[37]}{line[38]}{line[40]}{line[41]}"
-            check_time_end(update, line,cwd, end_time_l, time_l, time_split, end_split, end)
+        if day in line and month in line:
+            end_time_l = f"{line[54]}{line[55]}{line[57]}{line[58]}"
+            time_l = f"{line[38]}{line[39]}{line[41]}{line[42]}"
+            os.chdir(cwd)
+            value = check_time_end(update, line, cwd, end_time_l,
+                                   time_l, time_split, end_split, end)
+            if value:
+                continue
+            else:
+                return value
     os.chdir(cwd)
+    return True
 
 
 def try_again_repeat(update):
@@ -170,19 +182,41 @@ def check_time_end(update, line, cwd, end_time_l,
     elif end in line:
         os.chdir(cwd)
         try_again_repeat(update)
-    elif time_l < time_split and end_split < end_time_l:
+    elif time_l < time_split < end_split < end_time_l:
         os.chdir(cwd)
         try_again_repeat(update)
-    elif time_l < time_split and end_time_l < end_split:
+    elif time_l < time_split < end_time_l < end_split:
         os.chdir(cwd)
         try_again_repeat(update)
-    elif time_split < time_l and end_split < end_time_l:
+    elif time_split < time_l < end_split < end_time_l:
         os.chdir(cwd)
         try_again_repeat(update)
-    elif time_split < time_l and end_time_l < end_split:
+    elif time_split < time_l < end_time_l < end_split:
         os.chdir(cwd)
         try_again_repeat(update)
-    return True
+    else:
+        return True
+
+
+def get_end_meeting(update, context):
+    """Check if time exists and ask for a time when a meeting will end"""
+    global end
+    end = update.message.text
+    if 0 <= int(end.split(':')[0]) <= 24 and 0 <= int(end.split(':')[1]) <= 60:
+        if end > time:
+            global list_f_info_3
+            list_f_info_3 = list_of_info(list_f_info_2, "end", end)
+            if not empty_file(update):
+                if clash_duration(update, day, month):
+                    update.message.reply_text(text="Введіть назву зустрічі")
+                    return NAME
+                else:
+                    return ConversationHandler.END
+            else:
+                update.message.reply_text(text="Введіть назву зустрічі")
+                return NAME
+        else:
+            conv_end(update, context)
 
 
 def empty_file(update):
@@ -227,32 +261,35 @@ def list_of_info(list_f_info, key_word, arg_word):
 
 def del_meeting_day(update, context):
     """Send message to opt a day"""
-    update.message.reply_text(text="Оберіть день зустрічі")
-    return DAY_DEL
-
-
-def del_day(update, context):
-    """Check if this day exists and ask for a month"""
-    day = update.message.text
-    if int(day) and 0 < int(day) < 32:
-        global num_line
-        num_line = check_if_true(update,  day)
-        update.message.reply_text(text="Оберіть "
-                                       "місяць зустрічі у форматі: 01 ...")
-        return MONTH_DEL
-    else:
-        conv_end(update, context)
+    update.message.reply_text(text="Оберіть місяць зустрічі у форматі: 01 ...")
+    return MONTH_DEL
 
 
 def del_month(update, context):
     """Check if this day exists and ask for a title"""
-    month = update.message.text
-    if int(month) and len(month) == 2:
+    global month_del
+    month_del = update.message.text
+    d = datetime.date.today()
+    if d.month <= int(month_del[1]) and int(month_del) < 13 and len(month_del) == 2:
+        global num_line
+        num_line = check_if_true(update, month_del)
+        update.message.reply_text(text="Оберіть день зустрічі")
+        return DAY_DEL
+    else:
+        conv_end(update, context)
+
+
+def del_day(update, context):
+    """Check if this day exists and ask for a month"""
+    day_del = update.message.text
+    if check_month(month_del, day_del):
         global num_line_2
-        num_line_2 = check_if_true(update, month)
+        num_line_2 = check_if_true(update, day_del)
         if num_line == num_line_2:
-            update.message.reply_text(text="Введіть назву зустрічі")
+            update.message.reply_text(text="Оберіть назву зустрічі")
             return NAME_DEL
+        else:
+            conv_end(update, context)
     else:
         conv_end(update, context)
 
@@ -287,7 +324,9 @@ def all_meetings(update, context):
     all_lines = read_file(update)
     for line in all_lines:
         first = line.strip()
-        check(update, first)
+        first = first.replace("\'", "\"")
+        c = json.loads(first)
+        check(update, c)
 
 
 def read_file(update):
@@ -304,11 +343,19 @@ def read_file(update):
 def check(update, first):
     """Check if date is equal to date in a file"""
     d = datetime.date.today()
-    d_now = f"{d.day}.{d.month}"
-    d_l = f"{first[9]}{first[10]}.{first[25]}"
-    d_l_r = f"{first[9]}.{first[25]}"
-    if d_now == d_l or d_now == d_l_r:
-        update.message.reply_text(text=first)
+    d_now = f"{d.day}.0{d.month}"
+    d_l = f"{first['day']}.{first['month']}"
+    if d_now == d_l:
+        reply(update, first)
+
+
+def reply(update, first):
+    message = f"""
+Назва зустрічі: {first['title']}
+Початок зустрічі: {first['time']}
+Кінець зустрічі: {first['end']}
+"""
+    update.message.reply_text(text=message)
 
 
 def check_if_true(update, arg_word):
@@ -328,14 +375,13 @@ def conv_end(update, context):
     """Send a message that the information does not exist"""
     update.message.reply_text(text="Не відповідає дійсності. "
                                    "Почніть ще раз спочатку! /close")
-    return ConversationHandler.END
 
 
 conv_hand_add = ConversationHandler(
     entry_points=[MessageHandler(Filters.regex(r'Додати'), new_meeting_day)],
     states={
-        DAY: [MessageHandler(Filters.text & (~ Filters.command), get_day)],
         MONTH: [MessageHandler(Filters.text & (~ Filters.command), get_month)],
+        DAY: [MessageHandler(Filters.text & (~ Filters.command), get_day)],
         TIME: [MessageHandler(Filters.text & (~ Filters.command), get_time)],
         END_OF_MEETING: [MessageHandler
                          (Filters.text & (~ Filters.
@@ -350,9 +396,9 @@ conv_hand_del = ConversationHandler(
     entry_points=[MessageHandler(Filters.regex
                                  (r'Видалити зустріч'), del_meeting_day)],
     states={
-        DAY_DEL: [MessageHandler(Filters.text & (~ Filters.command), del_day)],
         MONTH_DEL: [MessageHandler(Filters.text &
                                    (~ Filters.command), del_month)],
+        DAY_DEL: [MessageHandler(Filters.text & (~ Filters.command), del_day)],
         NAME_DEL: [MessageHandler(Filters.text &
                                   (~ Filters.command), del_title)],
     },
