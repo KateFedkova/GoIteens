@@ -142,13 +142,7 @@ def get_time(update, context):
         conv_end(update, context)
 
 
-def split_time(time, end):
-    time_split = f"{time.split(':')[0]}{time.split(':')[1]}"
-    end_split = f"{end.split(':')[0]}{end.split(':')[1]}"
-    return time_split, end_split
-
-
-def clash_duration(update, day, month):
+def clash_duration(update, day, month, time, end):
     time_split, end_split = split_time(time, end)
     cwd = os.getcwd()
     os.chdir("Timetable_Information")
@@ -156,11 +150,13 @@ def clash_duration(update, day, month):
              f"{update.message.chat.id}" + '.txt', mode="r")
     for line in f.readlines():
         if day in line and month in line:
-            end_time_l = f"{line[54]}{line[55]}{line[57]}{line[58]}"
-            time_l = f"{line[38]}{line[39]}{line[41]}{line[42]}"
+            first = line.replace("\'", "\"")
+            c = json.loads(first)
+            end_time_l = c['end']
+            time_l = c['time']
             os.chdir(cwd)
             value = check_time_end(update, line, cwd, end_time_l,
-                                   time_l, time_split, end_split, end)
+                                   time_l, time, end)
             if value:
                 continue
             else:
@@ -176,7 +172,7 @@ def try_again_repeat(update):
 
 
 def check_time_end(update, line, cwd, end_time_l,
-                   time_l, time_split, end_split, end):
+                   time_l, time, end):
     if time in line:
         os.chdir(cwd)
         try_again_repeat(update)
@@ -210,7 +206,7 @@ def get_end_meeting(update, context):
             global list_f_info_3
             list_f_info_3 = list_of_info(list_f_info_2, "end", end)
             if not empty_file(update):
-                if clash_duration(update, day, month):
+                if clash_duration(update, day, month, time, end):
                     update.message.reply_text(text="Введіть назву зустрічі")
                     return NAME
                 else:
