@@ -204,7 +204,9 @@ def get_end_meeting(update, context):
     global end
     end = update.message.text
     if 0 <= int(end.split(':')[0]) <= 24 and 0 <= int(end.split(':')[1]) <= 60:
-        if end > time:
+        end_s = f"{end.split(':')[0]}{end.split(':')[1]}"
+        time_s = f"{time.split(':')[0]}{time.split(':')[1]}"
+        if int(end_s) > int(time_s): 
             global list_f_info_3
             list_f_info_3 = list_of_info(list_f_info_2, "end", end)
             if not empty_file(update):
